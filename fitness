@@ -1,0 +1,259 @@
+# importing  required packages
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from feature_engine.outliers import Winsorizer
+from sklearn.impute import SimpleImputer 
+####--------------------------------------------------####
+# Explorative data analysis
+
+fitness_data = pd.read_csv(r"C:\Users\MEDARI ANUSHA\AppData\Local\Microsoft\Windows\INetCache\IE\JJ3PM1UO\fitness_class_2212_(1)[1].csv") #(1500,8)
+ 
+fitness_data.shape     # display shape
+fitness_data.head()    # displaying the top record
+fitness_data.tail()    # displaying the bottom record
+
+fitness_data.info()
+
+fitness_data.describe()  # basic descriptive statistics
+
+####----------first moment----------#####
+
+#---calculate mean-----#
+print("mean")
+fitness_data.months_as_member.mean()       # ---15.628666666666666---#
+fitness_data.weight.mean()                 # ---82.61037837837839---#
+fitness_data.days_before.mean()            #--- 8.346666666666666----#
+fitness_data.attended.mean()               #----0.302666666666666664---#
+#---calculate median-----#
+print("median")
+fitness_data.months_as_member.median()    #---12.0---#
+fitness_data.weight.median()              #--- 80.76---#
+fitness_data.days_before.median()         #---9.0---#
+fitness_data.attended.median()            #---0.0---#
+  
+#---calculate mode-----#
+print("mode")
+fitness_data.months_as_member.mode()     # 0    8
+fitness_data.weight.mode()               #0    78.28
+fitness_data.days_before.mode()          #0    10
+fitness_data.attended.mode()             #0    0
+
+####---------------- second moment---------------# ##
+#calculate variance
+print("variance")
+fitness_data.months_as_member.var()         #----167.0955085612631-----#
+fitness_data.weight.var()                   # -----162.96715834219629-----#
+fitness_data.days_before.var()              #----16.629575272403798----#
+fitness_data.attended.var()                 #----0.21120035579274796----#
+
+
+#calculate std
+print("standard deviation")
+fitness_data.months_as_member.std()         #----12.926542792303868----#
+fitness_data.weight.std()                   #----12.765859091428053----#
+fitness_data.days_before.std()              #----4.077937624879002----#
+fitness_data.attended.std()                 #----0.45956539882017655---#
+
+
+#calculate range
+print("Range")
+max(fitness_data.months_as_member)-min(fitness_data.months_as_member)   #-------147-------#
+max(fitness_data.weight)-min(fitness_data.weight)                       #----115.11000000000001------#
+max(fitness_data.days_before)-min(fitness_data.days_before)             #-----28------------#
+max(fitness_data.attended)-min(fitness_data.attended)                   #-----1-------------#
+
+
+####------------Thrid Moment------------####
+#Bussiness Decision captures direction of spread center Normal distribution
+print("skewness")                        #skewness
+fitness_data.months_as_member.skew()     #np.float64(3.139781780718212)
+fitness_data.weight.skew()               #np.float64(1.0144113581317369)
+fitness_data.days_before.skew()          #np.float64(-0.09288319533653146)
+fitness_data.attended.skew()             #no.float64(0.8599289512870978)
+
+####------------Fourth Moment-----------#####
+#Bussiness Decision captures the peakness
+print("kurtosis")
+fitness_data.months_as_member.kurt()    #np.float64(16.930145256833335)
+fitness_data.weight.kurt()              #np.float64(2.333146502110286)
+fitness_data.days_before.kurt()         #np.float64(-0.7213124992074724)
+fitness_data.attended.kurt()            #np.float64(-1.2622069217629086)
+####---------------------------------------------####
+
+
+#----------------------data representation----------------------#
+#uni variant plots#
+#histogram for data distribution#
+plt.hist(fitness_data.months_as_member)
+plt.hist(fitness_data.weight)
+plt.hist(fitness_data.days_before)
+plt.hist(fitness_data.months_as_member)
+
+####--------------------------------------------------####
+# --------------------Box Plot --------------------------#
+#boxplot to check outliers#
+
+plt.boxplot(fitness_data.months_as_member)
+sns.boxplot(fitness_data.months_as_member)
+
+sns.boxplot(fitness_data.weight)
+
+sns.boxplot(fitness_data.days_before)
+
+sns.boxplot(fitness_data.attended)
+##------------------scatterplots-----------------##
+#Bivariate plot
+plt.figure(figsize=(10,8))
+plt.scatter(x=fitness_data.booking_id,y=fitness_data.months_as_member,color='Green')
+plt.xlabel('booking_id')
+plt.ylabel('months_as_member')
+
+plt.title('Graph') 
+plt.show() #-----Display the plot-----#
+
+plt.scatter(x=fitness_data.weight,y=fitness_data.days_before,color='Green')
+plt.xlabel('weight')
+plt.ylabel('days_before')
+
+plt.title('Graph') 
+plt.show() #-----Display the plot-----#
+
+plt.scatter(x=fitness_data.booking_id,y=fitness_data.weight,color='Green')
+plt.xlabel('booking_id')
+plt.ylabel('weight')
+
+plt.title('Graph') 
+plt.show() #-----Display the plot-----#
+
+plt.scatter(x=fitness_data.booking_id,y=fitness_data.days_before,color='Green')
+plt.xlabel('booking_id')
+plt.ylabel('days_before')
+
+plt.title('Graph') 
+plt.show() #-----Display the plot-----#
+
+plt.scatter(x=fitness_data.weight,y=fitness_data.months_as_member,color='Green')
+plt.xlabel('weight')
+plt.ylabel('months_as_member')
+
+plt.title('Graph') 
+plt.show() #-----Display the plot-----#
+
+plt.scatter(x=fitness_data.days_before,y=fitness_data.months_as_member,color='Green')
+plt.xlabel('days_before')
+plt.ylabel('months_as_member')
+
+plt.title('Graph') #-----Text(0.5,1.0,'Graph')-----#
+plt.show() #-----Display the plot-----#
+
+####-------------------------------------------####
+# data cleaning 
+# removing duplicates
+
+duplicates = fitness_data.duplicated()
+duplicates
+
+
+# counting total number of duplicates
+
+total_duplicates= sum(duplicates) #0 duplicates
+total_duplicates
+
+# removing duplicastes
+data_first = fitness_data .drop_duplicates()
+data_first
+
+# Create df for further steps
+df = fitness_data.copy()
+
+#---------------------Outliers treatment-------------------#
+plt.boxplot(df.months_as_member)#check outlayers
+
+Winsor_iqr= Winsorizer(capping_method ='iqr',tail='both',fold=1.5,variables=['months_as_member'])
+
+df['months_as_member']= Winsor_iqr.fit_transform(df[['months_as_member']])
+
+sns.boxplot(df['months_as_member'])#outlayers are cleared in months_as_member
+
+
+#----------filling missing values-------------#
+df.info()
+print(df.isna().sum())#20 missing values in weight
+
+mean_imputer= SimpleImputer(missing_values = np.nan,strategy='mean')
+
+df['weight']= mean_imputer.fit_transform(df[["weight"]])
+
+df["weight"].isna().sum()
+
+plt.boxplot(df.weight)#check outliers
+
+
+Winsor_iqr= Winsorizer(capping_method ='iqr',tail='both',fold=1.5,variables=['weight'])
+
+df['weight']= Winsor_iqr.fit_transform(df[['weight']])
+
+sns.boxplot(df['weight'])#outliers are cleared in weight
+
+
+plt.boxplot(df.days_before)#check outliers
+
+#handle the outliers in days_before
+
+Winsor_iqr= Winsorizer(capping_method ='iqr',tail='both',fold=1.5,variables=['days_before'])
+
+df['days_before']= Winsor_iqr.fit_transform(df[['days_before']])
+
+sns.boxplot(df['weight']) #outlier are cleared in days_before
+
+
+plt.boxplot(df.attended)#check outliers
+
+#Handle the outliers in attended
+
+Winsor_iqr= Winsorizer(capping_method ='iqr',tail='both',fold=1.5,variables=['attended'])
+
+df['attended']= Winsor_iqr.fit_transform(df[['attended']])
+
+sns.boxplot(df['attended'])#outliers are cleared in attended
+#........................................................#
+# dummy variables
+df = pd.read_csv(r"C:\Users\MEDARI ANUSHA\AppData\Local\Microsoft\Windows\INetCache\IE\JJ3PM1UO\fitness_class_2212_(1)[1].csv")
+df.drop(['booking_id'], axis = 1, inplace = True )# (1500,7)
+df_new_1 = pd.get_dummies(df, drop_first = True) #(1500,19) # 
+
+#-.......feature scaling..................#
+#generating descriptive statistic of original
+des=df.describe()
+data1=df.iloc[:,1:3]
+
+#loc only labels are used
+from sklearn.preprocessing import StandardScaler
+
+#initializing the StandardScaler
+Scaler = StandardScaler()
+
+#scaling the data using  StandardScaler
+df_std = Scaler.fit_transform(data1)
+
+#convereting array to df
+dataset_std=pd.DataFrame(df_std)
+
+#assigning column names to df
+dataset_std.columns=['months_as_member','weight']
+
+#standardization uses a formula
+res_std=dataset_std.describe()
+
+#normalization
+#normalization scales all numeric features to specific range
+from sklearn.preprocessing import MinMaxScaler
+
+#function MinMaxScaler
+MinMaxScale = MinMaxScaler()
+df_norm=MinMaxScale.fit_transform(data1)
+df_norm=pd.DataFrame(df_norm)
+df_norm.columns=['months_as_member','weight']
+res_std=dataset_std.describe()
